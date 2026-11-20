@@ -12,11 +12,9 @@ test_data = dataset["test"]
 print("Number of test questions:", len(test_data))
 
 trainingset = dataset["train"]
-validationset = dataset["validation"]
 testingset = dataset["test"]
 
 print(len(trainingset))
-print(len(validationset))
 print(len(testingset))
 
 # Load API key 
@@ -39,17 +37,16 @@ for i in range(len(testingset)):
 Answer the following medical question. Select the letter corresponding to the correct answer. No justification, just the letter.
 
 "Question: ", {question}
-"answer:" , {answer}
 "options:", {options}
 
 """
 #Gemini Response 
-response = client.models.generate_content(
+    response = client.models.generate_content(
     model="gemini-3.8-flash",
         contents= prompt
 )
 
-gemini_answers.append({
+    gemini_answers.append({
     "question": question,
     "correct_answer": answer,
     "gemini_response": response.text
