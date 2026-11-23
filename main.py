@@ -1,4 +1,5 @@
 import os
+import time
 import pandas as pd
 from pathlib import Path
 from dotenv import load_dotenv
@@ -9,13 +10,11 @@ dataset = load_dataset("GBaker/MedQA-USMLE-4-options")
 
 test_data = dataset["test"]
 
-print("Number of test questions:", len(test_data))
-
 trainingset = dataset["train"]
 testingset = dataset["test"]
 
-print(len(trainingset))
-print(len(testingset))
+print("Length of training set:", len(trainingset))
+print("Length of testing set:",  len(testingset))
 
 # Load API key 
 env_path = Path(__file__).resolve().parent / ".env"
@@ -27,9 +26,9 @@ client = genai.Client(api_key = api_key)
 
 gemini_answers = []
 
-#Testing loop on gemini
-for i in range(len(testingset)):
-
+#Testing loop on gemini with retry logic
+for i in range( len(testingset)):
+    print(f"Sending question {i + 1} to Gemini...")
     question = testingset[i]["question"]
     answer = testingset[i]["answer_idx"]
     options = testingset[i]["options"]
@@ -40,23 +39,37 @@ Answer the following medical question. Select the letter corresponding to the co
 "options:", {options}
 
 """
-#Gemini Response 
-    response = client.models.generate_content(
-    model="gemini-3.8-flash",
-        contents= prompt
-)
+
+    question = testingset[i]["question"]
+    answer = testingset[i]["answer_idx"]
+    options = testingset[i]["options"]
+
+    prompt = f"""
+Answer the following medical question. Select the letter corresponding to the correct answer. No justification, just the letter.
+
+Question: {question}
+Options: {options}
+"""
+
+    # Gemini Response with retry logic, ensuring it doesn't exceed request limit 
+    for attempt in range(3):
+        try:
+            response = client.models.generate_content(
+                model="gemini-3.8-flash",
+                contents=prompt
+            )
+            break
+        except Exception:
+            if attempt < 2:
+                time.sleep(10)
+            else:
+                raise
 
     gemini_answers.append({
-    "question": question,
-    "correct_answer": answer,
-    "gemini_response": response.text
-})
-
-df = pd.DataFrame(gemini_answers)
-df.to_csv("gemini_responses.csv")
-
-
-
-
-
-
+        "question": question,
+        "correct_answer": answer,
+        "gemini_response": response.text
+    })
+    # Save after every successful question in case gemini crashes 
+    df = pd.DataFrame(gemini_answers)
+    df.to_csv("gemini_responses.csv", index=False)
