@@ -6,6 +6,11 @@ from dotenv import load_dotenv
 from google import genai
 from datasets import load_dataset
 
+if os.path.exists("gemini_responses.csv"):
+    gemini_answers = pd.read_csv("gemini_responses.csv").to_dict("records")
+else:
+    gemini_answers = []
+
 dataset = load_dataset("GBaker/MedQA-USMLE-4-options")
 
 test_data = dataset["test"]
@@ -27,7 +32,7 @@ client = genai.Client(api_key = api_key)
 gemini_answers = []
 
 #Testing loop on gemini with retry logic
-for i in range( len(testingset)):
+for i in range(400, len(testingset)):
     print(f"Sending question {i + 1} to Gemini...")
     question = testingset[i]["question"]
     answer = testingset[i]["answer_idx"]
@@ -55,7 +60,7 @@ Options: {options}
     for attempt in range(3):
         try:
             response = client.models.generate_content(
-                model="gemini-3.8-flash",
+                model="gemini-3.5-flash-lite",
                 contents=prompt
             )
             break
