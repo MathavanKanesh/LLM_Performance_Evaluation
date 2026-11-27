@@ -29,10 +29,9 @@ api_key = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key = api_key)
 
 
-gemini_answers = []
 
 #Testing loop on gemini with retry logic
-for i in range(400, len(testingset)):
+for i in range(len(gemini_answers), len(testingset)):
     print(f"Sending question {i + 1} to Gemini...")
     question = testingset[i]["question"]
     answer = testingset[i]["answer_idx"]
