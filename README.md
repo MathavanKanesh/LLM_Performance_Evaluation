@@ -2,4 +2,4 @@
 Can LLMs perform as well as medical professionals on medical exams
 
 Models being compared: 
-Gemini 3.5 Flash, GPT-OSS 120B, Qwen 3.8 27B, Mistral Small 4
+Gemini 3.5 Flash, NVIDIA Nemotron 3 Ultra, Qwen 3.8 27B, Mistral Small 4
